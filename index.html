@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic AI Replica</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-color: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #3b82f6;
+            --user-bg: linear-gradient(135deg, #2563eb, #7c3aed);
+            --thought-color: #f59e0b;
+            --action-color: #a855f7;
+            --observe-color: #10b981;
+            --final-color: #22c55e;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-color);
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(59,130,246,0.12), transparent 28%),
+                radial-gradient(circle at 85% 25%, rgba(168,85,247,0.12), transparent 28%);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 18px 36px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 { margin:0; font-size:1.15rem; font-weight:600; background:linear-gradient(to right,#60a5fa,#c084fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+        .tools-bar {
+            display: flex;
+            gap: 10px;
+            padding: 12px 36px;
+            background: rgba(15,23,42,0.6);
+            border-bottom: 1px solid var(--glass-border);
+            flex-wrap: wrap;
+        }
+
+        .tool-chip {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 0.78rem;
+            color: var(--text-dim);
+        }
+
+        .tool-chip span { color: var(--observe-color); font-weight: 600; margin-right: 4px; }
+
+        .chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .msg { max-width: 75%; animation: fadeUp .35s ease forwards; opacity: 0; transform: translateY(8px); }
+
+        @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+
+        .msg-user {
+            align-self: flex-end;
+            background: var(--user-bg);
+            padding: 13px 20px;
+            border-radius: 18px 18px 3px 18px;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+        }
+
+        .msg-agent {
+            align-self: flex-start;
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            padding: 20px 22px;
+            border-radius: 3px 18px 18px 18px;
+            max-width: 660px;
+            width: 100%;
+        }
+
+        .step-header {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 14px 0 6px;
+        }
+
+        .step-header:first-child { margin-top: 0; }
+
+        .line { padding: 5px 0 5px 12px; font-size: 0.9rem; line-height: 1.5; border-left: 2px solid; }
+        .thought { color: var(--thought-color); border-color: var(--thought-color); }
+        .action  { color: var(--action-color);  border-color: var(--action-color);  }
+        .observe { color: var(--observe-color); border-color: var(--observe-color); white-space: pre-wrap; }
+        .answer  { color: var(--final-color);   font-weight: 700; font-size: 1.05rem; border: none; padding: 12px 0 0; margin-top: 12px; border-top: 1px solid var(--glass-border); }
+
+        .typing { display:inline-flex; gap:4px; align-items:center; padding: 2px 0; }
+        .dot { width:6px; height:6px; background:var(--text-dim); border-radius:50%; animation:bounce 1.4s infinite ease-in-out; }
+        .dot:nth-child(1){animation-delay:-.32s} .dot:nth-child(2){animation-delay:-.16s}
+        @keyframes bounce{ 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
+
+        .input-area {
+            padding: 20px 36px;
+            background: rgba(15,23,42,0.85);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .input-wrap { max-width: 860px; margin: 0 auto; position: relative; }
+
+        input[type=text] {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 16px 56px 16px 22px;
+            border-radius: 28px;
+            color: #fff;
+            font-size: 0.97rem;
+            outline: none;
+            font-family: inherit;
+            transition: border-color .25s, background .25s;
+        }
+
+        input[type=text]:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); }
+
+        .send-btn {
+            position: absolute; right: 7px; top: 7px; bottom: 7px;
+            width: 40px; border-radius: 50%;
+            background: var(--accent); border: none; color: #fff;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: transform .2s, background .2s;
+        }
+        .send-btn:hover { background: #1d4ed8; transform: scale(1.07); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Agentic AI Demo ✦</h1>
+    <div style="font-size:.78rem;color:var(--text-dim);">Unlimited Natural Language Engine</div>
+</header>
+
+<div class="tools-bar">
+    <div class="tool-chip"><span>🛠</span>calculator</div>
+    <div class="tool-chip"><span>📄</span>read_file</div>
+    <div class="tool-chip"><span>🔢</span>word_counter</div>
+</div>
+
+<div class="chat" id="chat">
+    <div class="msg msg-agent">
+        <div style="font-weight:600;margin-bottom:8px;">Hello! I am your Upgraded Agentic AI.</div>
+        <div style="color:var(--text-dim);font-size:.9rem;">I have a new Natural Language Engine. I can understand open-ended intents without strict rules!</div>
+        <div style="margin-top:12px;font-size:.82rem;color:var(--thought-color);line-height:1.8">
+            Try anything like:<br>
+            • "What is the average sales?"<br>
+            • "Give me the percentage of the last 2 months"<br>
+            • "Show me the lowest value in the file"<br>
+            • "Calculate 400 multiplied by 5"<br>
+            • "What is 15% of 600?"<br>
+            • "Count words in: The quick brown fox"
+        </div>
+    </div>
+</div>
+
+<div class="input-area">
+    <div class="input-wrap">
+        <input id="userInput" type="text" placeholder="Ask anything in plain English..." autocomplete="off" />
+        <button class="send-btn" onclick="handleInput()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  MOCK DATA
+// ─────────────────────────────────────────────
+const FILE_DATA = {
+    "data.txt": `January Sales: $4000
+February Sales: $6500
+March Sales: $9200
+April Sales: $7100
+May Sales: $5800`
+};
+
+// ─────────────────────────────────────────────
+//  TOOLS
+// ─────────────────────────────────────────────
+function toolCalculator(expr) {
+    try {
+        const safe = expr.replace(/[^0-9+\-*\/().\s%e]|\[|\]/g, '').trim();
+        if (!safe) return "Error: Could not evaluate.";
+        const result = Function('"use strict"; return (' + safe + ')')();
+        return isFinite(result) ? parseFloat(result.toFixed(6)).toString() : "Math Error";
+    } catch(e) { return "Error: " + e.message; }
+}
+
+function toolReadFile() {
+    return FILE_DATA["data.txt"];
+}
+
+function toolWordCounter(text) {
+    const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+    return `${words.length} words`;
+}
+
+// ─────────────────────────────────────────────
+//  AGENT BRAIN (Advanced Natural Language Engine)
+// ─────────────────────────────────────────────
+function agentBrain(goal, observation, step) {
+    const g = goal.toLowerCase();
+
+    // 1. If we got a final solid result, wrap up.
+    if (step > 1 && observation && !observation.startsWith("Error") && !observation.includes("Sales:")) {
+        return { thought: "I have gathered the numerical result. The task is complete.", action: "FINISH", input: observation };
+    }
+
+    // 2. Data Intent Logic (runs after file is read)
+    if (observation && observation.includes("Sales:")) {
+        const nums = [...observation.matchAll(/\$?(\d+)/g)].map(m => parseFloat(m[1]));
+        if (nums.length === 0) return { thought: "No numbers found.", action: "FINISH", input: "Data empty." };
+
+        // Advanced Intent Router for Data
+        if (g.includes("average") || g.includes("mean") || g.includes("avg")) {
+            const result = (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2);
+            return { thought: "Calculating the average of all data points.", action: "FINISH", input: result };
+        } 
+        else if (g.includes("max") || g.includes("highest") || g.includes("most") || g.includes("best") || g.includes("peak")) {
+            return { thought: "Finding the highest value in the data.", action: "FINISH", input: Math.max(...nums).toString() };
+        } 
+        else if (g.includes("min") || g.includes("lowest") || g.includes("worst") || g.includes("least")) {
+            return { thought: "Finding the lowest value in the data.", action: "FINISH", input: Math.min(...nums).toString() };
+        } 
+        else if (g.includes("count") || g.includes("how many")) {
+            return { thought: "Counting total entries in data.", action: "FINISH", input: nums.length + " entries found" };
+        } 
+        else if (g.includes("percentage") || g.includes("%")) {
+            // General percentage intent (e.g. "percentage of last few months")
+            const numberMatch = g.match(/last (\d+)/);
+            let subset;
+            if (numberMatch) {
+                const count = parseInt(numberMatch[1]);
+                subset = nums.slice(-count);
+                thought = `Calculating percentage contribution of the last ${count} data entries.`;
+            } else {
+                subset = nums.slice(-2); // default to last few
+                thought = `Calculating percentage contribution of the last few items against the total.`;
+            }
+            const subsetSum = subset.reduce((a, b) => a + b, 0);
+            const totalSum = nums.reduce((a, b) => a + b, 0);
+            const pct = ((subsetSum / totalSum) * 100).toFixed(2);
+            return { thought, action: "FINISH", input: pct + "%" };
+        } 
+        else {
+            return { thought: "I am extracting all numbers to sum them up.", action: "calculator", input: nums.join(" + ") };
+        }
+    }
+
+    // 3. File Read Request
+    const readIntents = ["read", "data", "sales", "file", "average", "highest", "last few months", "months"];
+    const needsData = readIntents.some(keyword => g.includes(keyword)) && !g.match(/[\d\+\-\*\/]/);
+    if (needsData) {
+        return { thought: "This looks like a question requiring file data. I will read the file first.", action: "read_file", input: "data.txt" };
+    }
+
+    // 4. Word Counter Intent
+    if (g.includes("count words") || g.includes("word count") || g.includes("words in") || g.includes("how many words")) {
+        let text = goal.replace(/(^["']+|["']+$)/g, '').trim();
+        const arrow = text.match(/[→\->]+\s*(.+)$/);
+        const colon = text.match(/(?:in\s*:|:)\s*(.+)$/i);
+        
+        if (arrow) text = arrow[1].trim();
+        else if (colon) text = colon[1].replace(/(^["']+|["']+$)/g, '').trim();
+        else text = text.replace(/count[ing]*\s*words?\s*(in\s*(this)?\s*(sentence|phrase|text|string)?)?/i, '').replace(/how\s*many\s*words\s*(are\s*in)?\s*/i, '').trim();
+        
+        return { thought: `Running word_counter tool on string.`, action: "word_counter", input: text };
+    }
+
+    // 5. Generalized NLP Math Extraction
+    let mathStr = g
+        .replace(/square root of\s*(\d+\.?\d*)/g, "$1 ** 0.5")
+        .replace(/sqrt\s*(\d+\.?\d*)/g, "$1 ** 0.5")
+        .replace(/(\d+\.?\d*)\s*(?:to the power of|\^)\s*(\d+\.?\d*)/g, "$1 ** $2")
+        .replace(/(\d+\.?\d*)\s*%\s*of\s*(\d+\.?\d*)/g, "($1 / 100) * $2")
+        .replace(/plus|add|sum of/g, "+")
+        .replace(/minus|subtract|less/g, "-")
+        .replace(/times|multiplied by/g, "*")
+        .replace(/divided by|over/g, "/");
+
+    let extracted = mathStr.match(/[\(\d][\d\s\+\-\*\/\(\)\.\%]*(?=\d|\)|\n|$)/g);
+    if (extracted) {
+        let longest = extracted.reduce((a, b) => a.length > b.length ? a : b).trim();
+        if (/[\+\-\*\/\%]/.test(longest) && /\d/.test(longest)) {
+            return { thought: `I extracted a mathematical calculation from natural language: "${longest}"`, action: "calculator", input: longest };
+        }
+    }
+
+    // 6. Fail-safe
+    return {
+        thought: "This question doesn't map to math, word counting, or data analysis.",
+        action: "FINISH",
+        input: "My offline brain doesn't have an intent mapper for this yet!"
+    };
+}
+
+// ─────────────────────────────────────────────
+//  UI EXECUTION
+// ─────────────────────────────────────────────
+const chatEl = document.getElementById('chat');
+const input  = document.getElementById('userInput');
+input.addEventListener('keypress', e => { if (e.key === 'Enter') handleInput(); });
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function appendUser(text) {
+    const d = document.createElement('div');
+    d.className = 'msg msg-user';
+    d.textContent = text;
+    chatEl.appendChild(d);
+    chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+async function handleInput() {
+    const val = input.value.trim();
+    if (!val) return;
+    input.value = '';
+    appendUser(val);
+
+    const box = document.createElement('div');
+    box.className = 'msg msg-agent';
+    chatEl.appendChild(box);
+
+    const typingEl = document.createElement('div');
+    typingEl.className = 'typing';
+    typingEl.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+    box.appendChild(typingEl);
+    chatEl.scrollTop = chatEl.scrollHeight;
+
+    let observation = "";
+
+    for (let s = 1; s <= 6; s++) {
+        if (box.contains(typingEl)) box.removeChild(typingEl);
+        const sh = document.createElement('div');
+        sh.className = 'step-header';
+        sh.textContent = `── Step ${s} ──`;
+        box.appendChild(sh);
+
+        box.appendChild(typingEl);
+        chatEl.scrollTop = chatEl.scrollHeight;
+        await sleep(700);
+        if (box.contains(typingEl)) box.removeChild(typingEl);
+
+        const { thought, action, input: actionInput } = agentBrain(val, observation, s);
+
+        addLine(box, 'thought', `🤔 Thought: ${thought}`);
+        chatEl.scrollTop = chatEl.scrollHeight;
+        await sleep(500);
+
+        if (action === 'FINISH') {
+            addLine(box, 'answer', `✅ Final Answer: ${actionInput}`);
+            chatEl.scrollTop = chatEl.scrollHeight;
+            break;
+        }
+
+        addLine(box, 'action', `🛠️ Action: Using '${action}' with → "${actionInput}"`);
+        chatEl.scrollTop = chatEl.scrollHeight;
+        await sleep(900);
+
+        let result = "";
+        if (action === "calculator")   result = toolCalculator(actionInput);
+        if (action === "read_file")    result = toolReadFile(actionInput);
+        if (action === "word_counter") result = toolWordCounter(actionInput);
+
+        observation = result;
+        addLine(box, 'observe', `👀 Observation:\n${observation}`);
+        chatEl.scrollTop = chatEl.scrollHeight;
+        await sleep(900);
+    }
+    chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function addLine(parent, cls, text) {
+    const d = document.createElement('div');
+    d.className = `line ${cls}`;
+    d.textContent = text;
+    parent.appendChild(d);
+}
+</script>
+</body>
+</html>

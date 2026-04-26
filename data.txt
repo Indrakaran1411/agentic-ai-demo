@@ -1,0 +1,5 @@
+January Sales: $4000
+February Sales: $6500
+March Sales: $9200
+April Sales: $7100
+May Sales: $5800
